@@ -16,12 +16,15 @@ from matplotlib import cm
 
 
 
-def PCA_sklearn(df):
-    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64'] #seleccionar datos numéricos
-    x = df[0:5].select_dtypes(include=numerics)     #0:5 pq no hay NaNs. #TODO: remove Nans
-    pca = PCA(n_components=2)
-    X_r = pca.fit(x).transform(x)
-    # print(X_r)
+
+numerics = ['int64', 'float64'] #seleccionar datos numéricos
+
+# def PCA_sklearn(df):
+    
+#     x = df.select_dtypes(include=numerics)     #TODO: remove Nans
+#     pca = PCA(n_components=2)
+#     X_r = pca.fit(x).transform(x)
+#     # print(X_r)
 
 @st.cache(allow_output_mutation=True)
 def kmeans(df):
@@ -139,15 +142,44 @@ def visualize_clusters(df, n_clusters, range_):
     ).interactive()
     st.altair_chart(graph, use_container_width=True)
 
+@st.cache(allow_output_mutation=True)
+def preview_cluster_playlist(df, cluster):
+    df = df[df['cluster'] == cluster]
+
+    return df
+
+def visualize_data(df, x_axis, y_axis, n_clusters, range_):
+    graph = alt.Chart(df.reset_index()).mark_bar().encode(
+        x=alt.X('name', sort='y'),
+        y=alt.Y(str(y_axis)+":Q"),
+        color=alt.Color('cluster', scale=alt.Scale(domain=[i for i in range(n_clusters)], range=range_)),
+        tooltip=['name', 'artist']
+    ).interactive()
+    st.altair_chart(graph, use_container_width=True)
 
 def write():
     st.title("Principal Component Analysis")
     df = globals.df
+    df = df.dropna()
     df_original = df.copy()
     features=["tempo","valence","speechiness","liveness","instrumentalness","energy","danceability","acousticness"]
     df = df[features]
-    df = df.dropna()
     
+    st.write("""Now we will use PCA to perform a Dimensionality Reduction and Clustering on the dataset. 
+    As an unsupervised data analysis technique, clustering organises data samples by proximity based on its variables.
+    By doing so we will be able to understand how each data point relates to each other and discover groups of similar ones.""")
+
+    st.write(""" Following the idea of Sejal Dua on [this tutorial](https://towardsdatascience.com/interactive-machine-learning-and-data-visualization-with-streamlit-7108c5032144),
+    we will perform two experiments: One of them determines the number of components to use in the feature matrix, 
+    and the other one discerns the number of clusters which separate the data most optimally.
+    """)
+    
+
+    st.image('https://miro.medium.com/max/573/1*nkj3dDdsZPoi4eYUY2h_7g.png')    
+
+    st.write("""
+    You can see the results below . 
+    """)
 
     # PCA_sklearn(df)
 
@@ -165,4 +197,18 @@ def write():
     # interactive visualizations of clusters on 2D plane
     range_ = get_color_range(n_clusters)
     visualize_clusters(clustered_df, n_clusters, range_)
-    
+
+    # # within-cluster exploration
+    # explore_df = orig.copy()
+    # keys = sorted(list(explore_df["cluster"].unique()))
+    # cluster = st.selectbox("Choose a cluster to preview", keys, index=0)
+    # preview_df = preview_cluster_playlist(explore_df, cluster)
+    # st.write(preview_df[preview_df.columns[:5]])
+    # x_axis = list(preview_df['name'])
+    # y_axis = st.selectbox("Choose a variable for the y-axis", list(preview_df.columns)[5:], index=maxes[cluster])
+    # visualize_data(preview_df, x_axis, y_axis, n_clusters, range_)
+
+    with st.beta_expander("Notes"):
+        st.write("""
+            Although the radar chart is not very precise in this example, the second chart shows clearly the different clusters.
+    """)

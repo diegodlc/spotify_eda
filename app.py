@@ -10,15 +10,18 @@ import pages.pca
 import resources.ast as ast
 import globals
 
+# Initial page config
 
+st.set_page_config(
+     page_title='Spotify dataset exploration',
+    #  layout="wide",
+     initial_sidebar_state="expanded",
+)
 
 PAGES = {
     "Home": pages.home,
     "EDA" : pages.eda,
     "PCA" : pages.pca
-    # "Skills": pages.skills,
-    # "Projects": pages.projects,
-    # "Recommendations": pages.recommendations
 }
 
 def main():
@@ -36,8 +39,8 @@ def main():
       
 
 
-    if st.button("Balloons"):
-        st.balloons() 
+    # if st.button("Balloons"):
+    #     st.balloons() 
 
 
     
@@ -45,7 +48,7 @@ def main():
     st.sidebar.title("About")
     st.sidebar.info(
         """
-        This app was made by Diego de la Cal.
+        This app was made by Diego de la Cal for the subject 'Large Scale Media Analytics' of the MSTC - UPM.
         """
     )
 

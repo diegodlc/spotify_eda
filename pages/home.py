@@ -1,8 +1,24 @@
 import streamlit as st
 import globals
 import io
+import missingno as msno
+
+
+
 buf = io.StringIO()
 
+
+
+def missing_values(df):
+    st.subheader('Missing values')
+    st.write("As we can see, there's a few missing rows on our dataset. Let's remove them with the button below.")
+    if st.button("Remove NaNs"):
+        df = df.dropna()
+    # Visualize missing values as a matrix 
+    p = msno.matrix(df, inline=True)
+    st.set_option('deprecation.showPyplotGlobalUse', False)
+    st.pyplot(p)
+    #TODO: utilizar imputer para los NaNs
 
 
 def write():
@@ -14,15 +30,18 @@ def write():
     with col1:
         st.image('https://download.logo.wine/logo/Spotify/Spotify-Logo.wine.png', width=300)
     with col2:
-        st.title('Welcome to x with')
+        st.title('Exploratory Data Analysis  ')
 
     st.write('[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1yR88TKbS3SbKr5wa2TSj_lm-gvMD3Jcb?usp=sharing)')
     st.write("""
+    We will go through the [Spotify dataset](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-features) in order to gain some useful information. You can use the sidebar to navigate trhough the 
+    different pages. 
 
-    [EXPLICACION]
-
-
+    First, let's have a look at the dataset below. Use the sidebar to check the options you want to visualize and don't forget to get rid of the missing values.
     """)
+
+    st.subheader('Raw Data')
+    st.dataframe(df) 
 
     with st.beta_expander("See features description"):
         st.write("""
@@ -43,21 +62,25 @@ def write():
 
 
         """)
-        # st.image("https://static.streamlit.io/examples/dice.jpg")
     st.text("")
 
-    if st.checkbox('Show Raw data'):
-        st.dataframe(df) 
+    # if st.sidebar.checkbox('Show Raw data'):
+    #     st.subheader('Raw Data')
+    #     st.dataframe(df) 
 
-    if st.checkbox('Show info'):
-       df
 
-    if st.checkbox("Show Columns"):
-        st.subheader('Show Columns List')
+    if st.sidebar.checkbox("Show Columns"):
+        st.subheader('Columns List')
         all_columns = df.columns.to_list()
         st.write(all_columns)
 
 
-    if st.checkbox('Statistical Description'):
+    if st.sidebar.checkbox('Statistical Description'):
             st.subheader('Statistical Data Descripition')
             st.write(df.describe())
+
+    if st.sidebar.checkbox("Missing values"):
+        missing_values(df)
+
+
+    st.info("Now, let's continue the exploration on the 'EDA' page. ")

@@ -13,7 +13,6 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import time
-import missingno as msno
 import streamlit.components.v1 as components
 
 
@@ -21,6 +20,9 @@ import streamlit.components.v1 as components
 
 sns.set(rc={'figure.figsize':(11.7,8.27)})
 st.set_option('deprecation.showPyplotGlobalUse', False)
+
+numerics = ['int64', 'float64']
+
 
 
 def dibuja_progreso():
@@ -96,50 +98,71 @@ def explore_dataframe(df):
 
 
 def histograms(df):
-    
     st.subheader('Histogram | Distplot')
-    # st.info("If error, please adjust column name on the panel.")
-    column_dist_plot = st.selectbox("Optional categorical variables (countplot hue).",df.columns)
+    st.text("")
+    x = df.select_dtypes(include=numerics) 
+    column_dist_plot = st.selectbox("Select variable to explore.",x.columns)
+    
     fig = sns.distplot(df[column_dist_plot])
     st.pyplot()
 
 def boxplot(df):
     st.subheader('Boxplot')
-    column_box_plot_X = st.sidebar.selectbox("X (Choose a column). Try Selecting island:",df.columns.insert(0,None))
-    column_box_plot_Y = st.sidebar.selectbox("Y (Choose a column - only numerical). Try Selecting Body Mass",df.columns)
-    hue_box_opt = st.sidebar.selectbox("Optional categorical variables (boxplot hue)",df.columns.insert(0,None))
+    # column_box_plot_X = st.sidebar.selectbox("X (Choose a column). Try Selecting island:",df.columns.insert(0,None))
+    # column_box_plot_Y = st.sidebar.selectbox("Y (Choose a column - only numerical). Try Selecting Body Mass",df.columns)
+    # hue_box_opt = st.sidebar.selectbox("Optional categorical variables (boxplot hue)",df.columns.insert(0,None))
     # if st.checkbox('Plot Boxplot'):
     # fig = sns.boxplot(x=column_box_plot_X, y=column_box_plot_Y,data=df,palette="Set3")
     # st.pyplot()
     columns =["valence","speechiness","liveness","instrumentalness","energy","danceability","acousticness"]
     # fig2 = df.boxplot(column=columns,figsize=(16,10), grid=False)
 
-    
-
-
     fig2 = sns.boxplot(x="variable", y="value", data=pd.melt(df[columns]))
     st.pyplot()
 
+    st.subheader('Compare variables')
+    x_cols = ['key', 'mode' ]
+    column_box_plot_X = st.selectbox("X (Choose a categorical column)",x_cols)
+    column_box_plot_Y = st.selectbox("Y (Choose a column - only numerical).",df.select_dtypes(include=numerics).columns)
+    fig = sns.boxplot(x=column_box_plot_X, y=column_box_plot_Y,data=df,palette="Set3")
+    st.pyplot()
 
-def missing_values(df):
-    st.subheader('Missing values')
-    if st.checkbox("Remove NaNs"):
-        df = df.dropna()
-    # Visualize missing values as a matrix 
-    p = msno.matrix(df, inline=True)
-    st.set_option('deprecation.showPyplotGlobalUse', False)
-    st.pyplot(p)
-    #TODO: utilizar imputer para los NaNs
 
 
 
 def correlation(df):
-    if st.sidebar.checkbox("Correlation Matrix"):
-        st.subheader('Correlation Matrix')
-        corrmat = df.corr()
-        plt.figure(figsize=(16, 13))
-        sns.heatmap(corrmat, vmax=.8, square=True,annot=True,cmap="coolwarm")
-        st.pyplot()
+    st.subheader('Correlation Matrix')
+    corrmat = df.corr()
+    plt.figure(figsize=(16, 13))
+    sns.heatmap(corrmat, vmax=.8, square=True,annot=True,cmap="coolwarm")
+    st.pyplot()
+    
+    # st.subheader('Top 10 most related features')
+    # valid_cols=["key","valence","speechiness","loudness","liveness","instrumentalness","energy","danceability","acousticness"]
+    # var = st.selectbox('Select feature',valid_cols )
+    # k = 10 #number of variables for heatmap
+    # cols = corrmat.nlargest(k, var)[var].index
+    # cm = np.corrcoef(df[cols].values.T)
+    # sns.set(font_scale=1.25)
+    # sns.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'size': 10}, yticklabels=cols.values, xticklabels=cols.values)
+    # st.pyplot()
+    with st.beta_expander("Notes"):
+        st.write("""
+        We can obtain a lot of useful information. Fo instance, we can see that there is a high/medium correlation (0.68) 
+        between energy feature and loudness which means a relationship between both features, something that is not surprising 
+        at all since The more energy in a song, the louder that song is. 
+
+        Besides, There are few other cases which we can highlight their correlation. The first one is the correlation between valence and danceability (0.43) which is pretty normal since valence represents a measure describing the musical positiveness conveyed by a song. So, songs with high valence sound more positive (e.g. happy, cheerful, euphoric) and otherwise in the case of low valence. Moreover, tracks which are more danceable tend to be more positive. The second case is correlation between energy and valence (0.31) which is expected from tracks that tend to be more positive and euphoric, but in this last case correlation is not high enough to assume a strong correlction between each other features. The last one is so interesting because of there is a negative correlation bewteen acousticness and energy (-0.51), which is reasonable since acoustic tracks tend to be more peaceful, quite, serene than high energy tracks which tend to be more euphoric and active, as we have assumed before.
+
+        On the other hand, we can see the lack of correlation between features which could be correlated in a first instance. 
+        For example, danceability and energy both have a correlation close to 0 despite both features could have been related 
+        at first. However, both features are correlated with valence directly so might be a indirectly relation between both. 
+        Other interesting point is the comparison between acousticness and loudness since both present a negative correlation, 
+        which is reasonable since, normally, acosutic tracks usually be quiet and calm.
+
+        """
+        )
+        
 
 
 
@@ -154,23 +177,21 @@ def write():
     st.title('Exploratory Data Analysis :books:')
     st.write("""
 
-    [EXPLICACION]
+    Let's dive deeper on the dataset. In this page we can analye and compare our features to have a better understanding of each one. 
+    Use the __Explore__ section of the sidebar to select which tool you want to use. 
 
     """)
     st.sidebar.title("Explore")
-
-    if st.sidebar.checkbox("Missing values"):
-        missing_values(df)
-
-    # explore_dataframe(df)
-
     if st.sidebar.checkbox('Histogram | Distplot'):
         histograms(df)
 
     if st.sidebar.checkbox('Boxplot'):
         boxplot(df)
 
-    correlation(df)
+    if st.sidebar.checkbox("Correlation Matrix"):
+        correlation(df)
+
+
 
     # pairplot(df)
     # dibuja_progreso()
