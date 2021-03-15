@@ -83,4 +83,4 @@ def write():
         missing_values(df)
 
 
-    st.info("Now, let's continue the exploration on the 'EDA' page. ")
+    st.info("After visualizing and fixing the missing values, let's continue the exploration on the 'EDA' page. ")
