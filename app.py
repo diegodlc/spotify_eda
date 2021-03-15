@@ -49,6 +49,7 @@ def main():
     st.sidebar.info(
         """
         This app was made by Diego de la Cal for the subject 'Large Scale Media Analytics' of the MSTC - UPM.
+        [Github](https://github.com/diegodlc/spotify_eda)
         """
     )
 
